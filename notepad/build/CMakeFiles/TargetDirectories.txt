@@ -1,3 +1,0 @@
-/project/build/CMakeFiles/rebuild_cache.dir
-/project/build/CMakeFiles/edit_cache.dir
-/project/build/CMakeFiles/Notepad.app.dir
