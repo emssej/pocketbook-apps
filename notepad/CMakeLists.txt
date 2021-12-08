@@ -20,6 +20,7 @@ include_directories ("${FREETYPE_INCLUDE_DIRS}")
 
 project (Notepad VERSION 0.2)
 # I'm sure there's a more elegant way to do the following.
+set (CMAKE_C_FLAGS "-W -Wall -Werror -Wextra")
 set (CMAKE_EXE_LINKER_FLAGS "-linkview -lm")
 
-add_executable (Notepad.app main.c src/event.c src/ui.c)
+add_executable (Notepad.app main.c src/ui.c)

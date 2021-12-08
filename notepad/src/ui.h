@@ -7,80 +7,57 @@
 
 #include "utilities.h"
 
-typedef enum
-WidgetType
-  {
-    WIDGETTYPE_VBOX,
-    WIDGETTYPE_HBOX,
-    WIDGETTYPE_LABEL
-  } WidgetType;
-
-/* Should text alignment be separate to the margin and padding? I don't think so. */
-
-typedef enum
-TextAlign
-  {
-    TEXT_ALIGN_TOP_LEFT,
-    TEXT_ALIGN_TOP_RIGHT,
-    TEXT_ALIGN_TOP_CENTER,
-    TEXT_ALIGN_CENTER_LEFT,
-    TEXT_ALIGN_CENTER_CENTER,
-    TEXT_ALIGN_CENTER_RIGHT,
-    TEXT_ALIGN_BOTTOM_LEFT,
-    TEXT_ALIGN_BOTTOM_CENTER,
-    TEXT_ALIGN_BOTTOM_RIGHT
-  } TextAlign;
-
-/* The huge struct that the whole UI system relies on. */
-
+/* The UIWidget has no type or anything, it just contains every
+   possible thing you can have in a widget. That way it is much less
+   complicated, and actually more versatile too. */
 typedef struct
-Widget
+UIWidget
 {
-  WidgetType type;
-  /* Index is the position in the CHILDREN array of the PARENT.  */
+  /* Index is the index of this UIWidget in the PARENT's array of
+     CHILDREN. */
   int index;
-  /* If WIDTH or HEIGHT is 0, it fills the remaining space. If the
-     widget has no parent, then it uses ScreenWidth () and
-     ScreenHeight (). */
+
+  int children_count;
+  struct UIWidget *parent, **children;
+
+  void (*onpointerdown) (struct UIWidget *self);
+  void (*onpointermove) (struct UIWidget *self);
+  void (*onpointerup) (struct UIWidget *self);
+
+  _Bool horizontal;		/* If it's TRUE, this UIWidget's
+				   CHILDREN are arranged
+				   horizontally. If it's FALSE,
+				   vertically.*/
+  float ratio;			/* This describes how much height (or
+				   width) this UIWidget will have in
+				   relation to it's PARENT. Every
+				   RATIO of every child of a PARENT
+				   should add up to 1. */
+  
+  /* Soon™ */
+  /* int margin, padding; */
+
+  int background_color, foreground_color;
+
+  ifont *font;
+  char *text;
+
+  /* ibitmap *BitmapFromScreen(int x, int y, int w, int h); */
+  /* int SavePNG(const char *path, const ibitmap *bmp); */
+  /* ibitmap *LoadPNG(const char *path, int dither); */
+  /* void DrawBitmap(int x, int y, const ibitmap *b); */
+  ibitmap *image;
+  
+  /* Things that aren't set by the user, but by the internal
+     functions. */
   int x, y, width, height;
-  /* If it's disabled, both it and it's children are invisible, and
-     neither does it or its children take events. */
-  _Bool enabled;
-  
-  void (*pointerdown_callback) (struct Widget *self);
-  void (*pointerup_callback) (struct Widget *self);
-  void (*pointermove_callback) (struct Widget *self);
+} UIWidget;
 
-  struct Widget *parent;
-  size_t children_count;
-  struct Widget *children;
+UIWidget UIWidget_new ();
+int UIWidget_add_child (UIWidget *parent, UIWidget *child);
+void UIWidget_remove_children (UIWidget *parent);
 
-  /* Visual stuff that applies to all widgets. For now, at least. */
-  int background_color;
-  int border_color, border_thickness;
-  int margin, padding;
-  
-  /* This union contains all the widget types. */
-  union
-  {
-    struct
-    {
-      ifont *font;
-      char *text;
-      int color;
-      TextAlign align;
-    } label;
-  };
-} Widget;
+void UIWidget_draw (UIWidget *widget, _Bool with_children);
 
-/* The root widget is always a box. */
-Widget Widget_new_box (_Bool horizontal);
-Widget Widget_new_label (char *text, int color, TextAlign align, ifont *font);
-
-void Widget_add_child (Widget *parent, Widget child);
-
-void Widget_set_margin_and_padding (Widget *widget, int margin, int padding);
-void Widget_set_background_color (Widget *widget, int background);
-void Widget_set_border (Widget *widget, int border_color, int border_thickness);
-
-void Widget_draw (Widget *widget);
+void UIWidget_handle_event (UIWidget *widget, int event_type, int arg1,
+			    int arg2);

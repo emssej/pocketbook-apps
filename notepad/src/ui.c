@@ -1,122 +1,170 @@
 #include "ui.h"
 
-Widget
-Widget_dummy ()
+UIWidget
+UIWidget_new ()
 {
-  Widget widget;
-
+  UIWidget widget;
+  
   widget.index = 0;
+  widget.parent = NULL;
+  widget.children_count = 0;
+  widget.children = NULL;
+  widget.onpointerdown = NULL;
+  widget.onpointermove = NULL;
+  widget.onpointerup = NULL;
+  widget.horizontal = FALSE;
+  widget.ratio = 1;
+  widget.background_color = WHITE;
+  widget.foreground_color = BLACK;
+  widget.font = NULL;
+  widget.text = NULL;
+  widget.image = NULL;
   widget.x = 0;
   widget.y = 0;
   widget.width = ScreenWidth ();
   widget.height = ScreenHeight ();
-  widget.background_color = WHITE;
-  widget.border_color = WHITE;
-  widget.border_thickness = 0;
-  widget.margin = 0;
-  widget.padding = 0;
-  widget.enabled = TRUE;
-
-  return widget;  
-}
-
-Widget
-Widget_new_box (_Bool horizontal)
-{
-  Widget widget = Widget_dummy ();
-
-  widget.type = horizontal ? WIDGETTYPE_HBOX : WIDGETTYPE_VBOX;
 
   return widget;
 }
 
-Widget
-Widget_new_label (char *text, int color, TextAlign align, ifont *font)
+int
+UIWidget_add_child (UIWidget *parent, UIWidget *child)
 {
-  Widget widget = Widget_dummy ();
-
-  widget.label.text = text;
-  widget.label.color = color;
-  widget.label.align = align;
-  widget.label.font = font;
-
-  return widget;  
-}
-
-/* This function is FUCKING BROKEN for now. */
-void
-Widget_add_child (Widget *parent, Widget child)
-{
-  child.index = parent->children_count;
-  child.parent = parent;
-  int all_the_space = parent->margin + parent->padding;
-  child.x = parent->x + all_the_space;
-  child.y = parent->x + all_the_space;
-  child.width = parent->width - all_the_space * 2;
-  child.height = parent->height - all_the_space * 2;
-  
+  child->index = parent->children_count;
   ++parent->children_count;
-  parent->children = realloc
-    (parent->children, parent->children_count
-     * sizeof (Widget));
-    
+  parent->children = realloc (parent->children, sizeof (UIWidget *)
+			      * parent->children_count);
+
   if (parent->children == NULL)
     {
-      FATAL ("realloc() is out of memory.");
+      return 0;
+    }
+
+  /* Here, we calculate all the x's, y's, widths and heights. */
+
+  if (parent->horizontal)
+    {
+      child->x = parent->x;
+      child->y = parent->y;
+      child->width = parent->width * child->ratio;
+      child->height = parent->height;
+
+      if (child->index != 0)
+	{
+	  child->x = parent->children[child->index - 1]->x
+	    + parent->children[child->index - 1]->width;
+	}
     }
   else
     {
-      parent->children[parent->children_count - 1] = child;
-    }  
+      child->x = parent->x;
+      child->y = parent->y;
+      child->width = parent->width;
+      child->height = parent->height * child->ratio;
+
+      if (child->index != 0)
+	{
+	  child->y = parent->children[child->index - 1]->y
+	    + parent->children[child->index - 1]->height;
+	}
+    }
+  
+  parent->children[parent->children_count - 1] = child;
+  
+  return 1;
 }
 
 void
-Widget_set_margin_and_padding (Widget *widget, int margin, int padding)
+UIWidget_remove_children (UIWidget *parent)
 {
-  widget->margin = margin;
-  widget->padding = padding;
+  parent->children_count = 0;
+  parent->children = NULL;
 }
 
 void
-Widget_set_background_color (Widget *widget, int background_color)
+UIWidget_draw (UIWidget *widget, _Bool with_children)
 {
-  widget->background_color = background_color;
-}
+  FillArea (widget->x, widget->y, widget->width, widget->height,
+	    widget->background_color);
+  
+  if (widget->font != NULL && widget->text != NULL)
+    {      
+      SetFont (widget->font, widget->foreground_color);
 
-void
-Widget_set_border (Widget *widget, int border_color, int border_thickness)
-{
-  widget->border_color = border_color;
-  widget->border_thickness = border_thickness;
-}
-
-void Widget_draw (Widget *widget)
-{
-  int x = widget->x + widget->margin;
-  int y = widget->y + widget->margin;
-  int width = widget->width - widget->margin * 2;
-  int height = widget->height - widget->margin * 2;
-
-  switch (widget->type)
-    {
-    case WIDGETTYPE_HBOX:
-    case WIDGETTYPE_VBOX:
-      {
-	FillArea (x, y, width, height, widget->background_color);
-	DrawThickRect (x, y, width, height, widget->border_color,
-		       widget->border_thickness);
-      }
-      break;
-    default:
-      break;
+      /* I wish to know why we can't use TextRectHeight, which would
+	 make our centering more accurate, but I have yet to find
+	 answers, so we just get our height from the font struct. */
+      DrawTextRect (widget->x, widget->y + widget->height / 2
+		    - widget->font->height, widget->width, widget->height,
+		    widget->text, ALIGN_CENTER);
     }
 
-  /* /\* After we're done with all that, we move on to the children. *\/ */
-  /* if (widget->children != NULL) */
-  /*   { */
-  /*     for (int i = 0; i < widget->children_count; ++i) */
-  /* 	{ */
-  /* 	  Widget_draw (&widget->children[i]); */
-  /* 	} */
-  /*   } */
+  if (widget->image != NULL)
+    {
+      TileBitmap (widget->x, widget->y, widget->width, widget->height,
+		  widget->image);
+    }
+  
+  if (with_children)
+    {
+      for (int i = 0; i < widget->children_count; ++i)
+	{
+	  UIWidget_draw (widget->children[i], with_children);
+	}
+    }
+
+  PartialUpdate (widget->x, widget->y, widget->width, widget->height);
+}
+
+/* 
+
+   This is where the error is. But why? The for loop?
+
+ */
+
+void
+UIWidget_handle_event (UIWidget *widget, int event_type, int arg1, int arg2)
+{
+  _Bool inrect = INRECT (widget->x, widget->y, widget->width, widget->height,
+			 arg1, arg2);
+
+  _Bool fallthrough = TRUE;
+
+  if (inrect)
+    {
+      switch (event_type)
+	{
+	case EVT_POINTERDOWN:
+	  if (widget->onpointerdown != NULL)
+	    {
+	      /* widget->onpointerdown (widget); */
+	      fallthrough = FALSE;
+	    }
+	  break;
+	case EVT_POINTERMOVE:
+ 	  if (widget->onpointermove != NULL)
+	    {
+	      /* widget->onpointermove (widget); */
+	      fallthrough = FALSE;
+	    }
+	  break;
+	case EVT_POINTERUP:
+	  if (widget->onpointerup != NULL)
+	    {
+	      /* widget->onpointerup (widget); */
+	      fallthrough = FALSE;
+	    }
+	  break;
+	default:
+	  break;
+	}
+    }
+
+  if (fallthrough)
+    {
+      for (int i = 0; i < widget->children_count; ++i)
+	{
+	  UIWidget_handle_event (widget->children[i], event_type, arg1, arg2);
+	}
+    }
 }
