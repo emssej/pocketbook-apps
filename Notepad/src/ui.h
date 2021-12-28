@@ -1,9 +1,6 @@
 #pragma once
 
-#include <stdlib.h>
 #include <math.h>
-
-#include <inkview.h>
 
 #include "utilities.h"
 
@@ -24,7 +21,7 @@ UIWidget
   void (*onpointermove) (struct UIWidget *self);
   void (*onpointerup) (struct UIWidget *self);
 
-  _Bool horizontal;		/* If it's TRUE, this UIWidget's
+  bool horizontal;		/* If it's TRUE, this UIWidget's
 				   CHILDREN are arranged
 				   horizontally. If it's FALSE,
 				   vertically.*/
@@ -53,11 +50,12 @@ UIWidget
   int x, y, width, height;
 } UIWidget;
 
-UIWidget UIWidget_new ();
+UIWidget *UIWidget_new ();
+
 int UIWidget_add_child (UIWidget *parent, UIWidget *child);
 void UIWidget_remove_children (UIWidget *parent);
 
-void UIWidget_draw (UIWidget *widget, _Bool with_children);
+void UIWidget_draw (UIWidget *widget);
 
 void UIWidget_handle_event (UIWidget *widget, int event_type, int arg1,
 			    int arg2);

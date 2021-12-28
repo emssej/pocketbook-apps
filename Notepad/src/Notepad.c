@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "src/ui.h"
+#include "ui.h"
 
 /* Some global stuff. */
 
@@ -8,7 +8,7 @@ ifont *default_font;
 
 /* The UI elements. */
 
-UIWidget current_root;
+UIWidget *current_root;
 
 /* 
 
@@ -34,22 +34,24 @@ main_handler (int event_type, int arg1, int arg2)
     {
     case EVT_INIT:
       {
-	default_font = OpenFont (DEFAULTFONT, 48, TRUE);
+	default_font = OpenFont (DEFAULTFONT, 48, true);
 
 	/* Put your GUI stuff here. */
 
 	current_root = UIWidget_new ();
 
-	UIWidget button;
-	button.font = default_font;
-	button.text = "Hello, world!";
-	button.ratio = 0.2;
+	UIWidget *button = UIWidget_new ();
+	button->font = default_font;
+	button->text = "Hello, world!";
+	button->ratio = 0.2;
+	button->onpointerdown = onpointerdown;
 	
-	UIWidget padding;
-	button.ratio = 0.8;
+	UIWidget *padding = UIWidget_new ();
+	padding->ratio = 0.8;
+	padding->background_color = DGRAY;
 
-	UIWidget_add_child (&current_root, &button);
-	UIWidget_add_child (&current_root, &padding);
+	UIWidget_add_child (current_root, button);
+	UIWidget_add_child (current_root, padding);
 	
 	/* Don't touch anything else. */
 
@@ -57,12 +59,12 @@ main_handler (int event_type, int arg1, int arg2)
 	   application is NOT a reader. */
 	SetCurrentApplicationAttribute (APPLICATION_READER, 0);
 
-	UIWidget_draw (&current_root, TRUE);
+	UIWidget_draw (current_root);
       }
       break;
     }
 
-  UIWidget_handle_event (&current_root, event_type, arg1, arg2);
+  UIWidget_handle_event (current_root, event_type, arg1, arg2);
   
   return 0;
 }

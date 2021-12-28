@@ -1,29 +1,18 @@
 #include "ui.h"
 
-UIWidget
+UIWidget *
 UIWidget_new ()
 {
-  UIWidget widget;
-  
-  widget.index = 0;
-  widget.parent = NULL;
-  widget.children_count = 0;
-  widget.children = NULL;
-  widget.onpointerdown = NULL;
-  widget.onpointermove = NULL;
-  widget.onpointerup = NULL;
-  widget.horizontal = FALSE;
-  widget.ratio = 1;
-  widget.background_color = WHITE;
-  widget.foreground_color = BLACK;
-  widget.font = NULL;
-  widget.text = NULL;
-  widget.image = NULL;
-  widget.x = 0;
-  widget.y = 0;
-  widget.width = ScreenWidth ();
-  widget.height = ScreenHeight ();
+  UIWidget *widget = malloc (sizeof (UIWidget));
 
+  *widget = (UIWidget) {
+    .ratio = 1,
+    .background_color = WHITE,
+    .foreground_color = BLACK,
+    .width = ScreenWidth (),
+    .height = ScreenHeight ()
+  };
+  
   return widget;
 }
 
@@ -82,7 +71,7 @@ UIWidget_remove_children (UIWidget *parent)
 }
 
 void
-UIWidget_draw (UIWidget *widget, _Bool with_children)
+UIWidget_draw (UIWidget *widget)
 {
   FillArea (widget->x, widget->y, widget->width, widget->height,
 	    widget->background_color);
@@ -104,13 +93,10 @@ UIWidget_draw (UIWidget *widget, _Bool with_children)
       TileBitmap (widget->x, widget->y, widget->width, widget->height,
 		  widget->image);
     }
-  
-  if (with_children)
+
+  for (int i = 0; i < widget->children_count; ++i)
     {
-      for (int i = 0; i < widget->children_count; ++i)
-	{
-	  UIWidget_draw (widget->children[i], with_children);
-	}
+      UIWidget_draw (widget->children[i]);
     }
 
   PartialUpdate (widget->x, widget->y, widget->width, widget->height);
@@ -119,5 +105,59 @@ UIWidget_draw (UIWidget *widget, _Bool with_children)
 void
 UIWidget_handle_event (UIWidget *widget, int event_type, int arg1, int arg2)
 {
+  bool in = INRECT (widget->x, widget->y, widget->width, widget->height, arg1,
+		    arg2);
 
+  if (in)
+    {
+      switch (event_type)
+	{
+	case EVT_POINTERDOWN:
+	  if (widget->onpointerdown != NULL)
+	    {
+	      widget->onpointerdown (widget);
+	    }
+	  else
+	    {
+	      for (int i = 0; i < widget->children_count; ++i)
+		{
+		  UIWidget_handle_event (widget->children[i], event_type, arg1,
+					 arg2);
+		}
+	    }
+	  break;
+	case EVT_POINTERMOVE:
+	  if (widget->onpointermove != NULL)
+	    {
+	      widget->onpointermove (widget);
+	    }
+	  else
+	    {
+	      for (int i = 0; i < widget->children_count; ++i)
+		{
+		  UIWidget_handle_event (widget->children[i], event_type, arg1,
+					 arg2);
+		}
+	    }
+
+	  break;
+	case EVT_POINTERUP:
+	  if (widget->onpointerup != NULL)
+	    {
+	      widget->onpointerup (widget);
+	    }
+	  else
+	    {
+	      for (int i = 0; i < widget->children_count; ++i)
+		{
+		  UIWidget_handle_event (widget->children[i], event_type, arg1,
+					 arg2);
+		}
+	    }
+
+	  break;
+	default:
+	  break;
+	}
+    }
 }

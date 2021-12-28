@@ -1,12 +1,10 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <inkview.h>
-
-#define FALSE 0
-#define TRUE 1
 
 #define COLOR_BLUE     "\x1B[34m"
 #define COLOR_RED      "\x1B[31m"
@@ -37,7 +35,7 @@ SmoothThickLine (int x0, int y0, int x1, int y1, int color, int thickness)
   int err = dx + dy;
   int e2;
 
-  while (TRUE)
+  while (true)
     {
       DrawCircle (x0, y0, thickness, color);
 
