@@ -40,10 +40,16 @@ main_handler (int event_type, int arg1, int arg2)
 
 	current_root = UIWidget_new ();
 
-	current_root.background_color = DGRAY;
-	current_root.foreground_color = WHITE;
-	current_root.font = default_font;
-	current_root.text = "Testing testing testing testing testing testing testing testing testing.";
+	UIWidget button;
+	button.font = default_font;
+	button.text = "Hello, world!";
+	button.ratio = 0.2;
+	
+	UIWidget padding;
+	button.ratio = 0.8;
+
+	UIWidget_add_child (&current_root, &button);
+	UIWidget_add_child (&current_root, &padding);
 	
 	/* Don't touch anything else. */
 
