@@ -116,55 +116,8 @@ UIWidget_draw (UIWidget *widget, _Bool with_children)
   PartialUpdate (widget->x, widget->y, widget->width, widget->height);
 }
 
-/* 
-
-   This is where the error is. But why? The for loop?
-
- */
-
 void
 UIWidget_handle_event (UIWidget *widget, int event_type, int arg1, int arg2)
 {
-  _Bool inrect = INRECT (widget->x, widget->y, widget->width, widget->height,
-			 arg1, arg2);
 
-  _Bool fallthrough = TRUE;
-
-  if (inrect)
-    {
-      switch (event_type)
-	{
-	case EVT_POINTERDOWN:
-	  if (widget->onpointerdown != NULL)
-	    {
-	      /* widget->onpointerdown (widget); */
-	      fallthrough = FALSE;
-	    }
-	  break;
-	case EVT_POINTERMOVE:
- 	  if (widget->onpointermove != NULL)
-	    {
-	      /* widget->onpointermove (widget); */
-	      fallthrough = FALSE;
-	    }
-	  break;
-	case EVT_POINTERUP:
-	  if (widget->onpointerup != NULL)
-	    {
-	      /* widget->onpointerup (widget); */
-	      fallthrough = FALSE;
-	    }
-	  break;
-	default:
-	  break;
-	}
-    }
-
-  if (fallthrough)
-    {
-      for (int i = 0; i < widget->children_count; ++i)
-	{
-	  UIWidget_handle_event (widget->children[i], event_type, arg1, arg2);
-	}
-    }
 }

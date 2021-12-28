@@ -40,23 +40,10 @@ main_handler (int event_type, int arg1, int arg2)
 
 	current_root = UIWidget_new ();
 
-	UIWidget button1 = UIWidget_new ();
-	button1.font = default_font;
-	button1.text = "Click me and stuff!";
-	button1.onpointerdown = onpointerdown;
-	button1.ratio = 0.6;
-	button1.background_color = LGRAY;
-
-	UIWidget button2 = UIWidget_new ();
-	button2.font = default_font;
-	button2.text = "Click me!";
-	button2.onpointerdown = onpointerdown;
-	button2.ratio = 0.4;
-	button1.background_color = BLACK;
-	button1.foreground_color = WHITE;
-	
-	UIWidget_add_child (&current_root, &button1);
-	UIWidget_add_child (&current_root, &button2);
+	current_root.background_color = DGRAY;
+	current_root.foreground_color = WHITE;
+	current_root.font = default_font;
+	current_root.text = "Testing testing testing testing testing testing testing testing testing.";
 	
 	/* Don't touch anything else. */
 
