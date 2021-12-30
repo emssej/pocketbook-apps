@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-#include "ui.h"
+#include "base.h"
 
 UIWidget *UISpinner_new (int *number, int min, int max, ifont *font, char *text);
 

@@ -1,14 +1,12 @@
 #pragma once
 
-#include <malloc.h>
 #include <math.h>
 
-#include "utilities.h"
+#include "../utilities.h"
 
 typedef struct
 UIEvent
 {
-  struct UIWidget *widget;
   int event_type, arg1, arg2;
 } UIEvent;
 
@@ -25,12 +23,12 @@ UIWidget
   size_t children_count;
   struct UIWidget *parent, **children;
 
-  void (*onpointerdown) (UIEvent event);
-  void (*onpointermove) (UIEvent event);
-  void (*onpointerup) (UIEvent event);
-  void (*onkeydown[0x39]) (UIEvent event);
-  void (*ondraw) (UIEvent event); /* It's executed AFTER drawing. */
-
+  void (*onpointerdown) (struct UIWidget *self, UIEvent event);
+  void (*onpointermove) (struct UIWidget *self, UIEvent event);
+  void (*onpointerup) (struct UIWidget *self, UIEvent event);
+  void (*onkeydown[34]) (struct UIWidget *self, UIEvent event);
+  void (*ondraw) (struct UIWidget *self, UIEvent event);
+  
   bool horizontal;		/* If it's TRUE, this UIWidget's
 				   CHILDREN are arranged
 				   horizontally. If it's FALSE,
@@ -71,7 +69,7 @@ void UIWidget_remove_children (UIWidget *parent);
 
 #define UIWidget_draw(widget, ...) UIWidget_draw_internal(widget, (true, ##__VA_ARGS__))
 void UIWidget_draw_internal (UIWidget *widget, bool update);
-void UIWidget_handle_event (UIEvent event);
+void UIWidget_handle_event (UIWidget *widget, UIEvent event);
 
 /* Utility functions. */
 

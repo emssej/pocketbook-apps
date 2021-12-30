@@ -1,4 +1,15 @@
-#include "ui.h"
+#include "base.h"
+
+void
+UIWidget_debug (UIWidget *widget)
+{
+  char debug[256];
+  sprintf (debug, "x: %d y: %d w: %d h: %d index: %d has parent: %s children count: %d",
+	   widget->x, widget->y, widget->w, widget->h,
+	   widget->index, widget->parent != NULL ? "yes" : "no", widget->children_count);
+
+  DEBUGMSG (debug);
+}
 
 UIWidget *
 UIWidget_new ()
@@ -73,7 +84,7 @@ UIWidget_add_child (UIWidget *parent, UIWidget *child)
     }
 
   child->parent = parent;
-  parent->children[parent->children_count - 1] = child;
+  parent->children[child->index] = child;
 
   UIWidget_calculate_dimensions (child);
 
@@ -111,53 +122,49 @@ UIWidget_draw_internal (UIWidget *widget, bool update)
 
   if (widget->ondraw != NULL)
     {
-      widget->ondraw ((UIEvent) { .widget = widget });
+      widget->ondraw (widget, (UIEvent) {});
     }
 }
 
 void
-UIWidget_handle_event (UIEvent event)
+UIWidget_handle_event (UIWidget *widget, UIEvent event)
 {
-  bool in = INRECT (event.widget->x, event.widget->y, event.widget->w, event.widget->h,
+  bool in = INRECT (widget->x, widget->y, widget->w, widget->h,
 		    event.arg1, event.arg2);
 
   switch (event.event_type)
     {
     case EVT_POINTERDOWN:
       {
-	if (event.widget->onpointerdown != NULL && in)
+	if (widget->onpointerdown != NULL && in)
 	  {
-	    event.widget->onpointerdown (event);
+	    widget->onpointerdown (widget, event);
 	  }
       }
       break;
     case EVT_POINTERMOVE:
-      if (event.widget->onpointermove != NULL && in)
+      if (widget->onpointermove != NULL && in)
 	{
-	  event.widget->onpointermove (event);
+	  widget->onpointermove (widget, event);
 	}
       break;
     case EVT_POINTERUP:
-      if (event.widget->onpointerup != NULL && in)
+      if (widget->onpointerup != NULL && in)
 	{
-	  event.widget->onpointerup (event);
+	  widget->onpointerup (widget, event);
 	}
       break;
     case EVT_KEYDOWN:
-      for (int i = 0; i < 0x39; ++i)
+      if (widget->onkeydown[event.arg1] != NULL)
 	{
-	  if (event.widget->onkeydown[i] != NULL)
-	    {
-	      event.widget->onkeydown[i] (event);
-	    }
+	  widget->onkeydown[event.arg1] (widget, event);
 	}
     default:
       break;
     }
 
-  for (size_t i = 0; i < event.widget->children_count; ++i)
+  for (size_t i = 0; i < widget->children_count; ++i)
     {
-      event.widget = event.widget->children[i];
-      UIWidget_handle_event (event);
+      UIWidget_handle_event (widget->children[i], event);
     }
 }

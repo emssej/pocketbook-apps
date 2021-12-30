@@ -18,7 +18,7 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-#define INRECT(x, y, w, h, X, Y) ((X > x) && (X < w) && (Y > y) && (Y < h))
+#define INRECT(x, y, w, h, X, Y) ((X > x) && (X < x + w) && (Y > y) && (Y < y + h))
 
 #define DEBUGMSG(text) Message(ICON_INFORMATION, "", text, 3500)
 
