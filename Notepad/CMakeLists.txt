@@ -23,4 +23,4 @@ project (Notepad VERSION 0.2)
 set (CMAKE_C_FLAGS "-W -Wall -Werror -Wextra")
 set (CMAKE_EXE_LINKER_FLAGS "-linkview -lm")
 
-add_executable (Notepad.app src/Notepad.c src/ui.c)
+add_executable (Notepad.app src/Notepad.c src/ui.c src/spinner.c)

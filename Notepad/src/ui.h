@@ -1,8 +1,16 @@
 #pragma once
 
+#include <malloc.h>
 #include <math.h>
 
 #include "utilities.h"
+
+typedef struct
+UIEvent
+{
+  struct UIWidget *widget;
+  int event_type, arg1, arg2;
+} UIEvent;
 
 /* The UIWidget has no type or anything, it just contains every
    possible thing you can have in a widget. That way it is much less
@@ -14,12 +22,14 @@ UIWidget
      CHILDREN. */
   int index;
 
-  int children_count;
+  size_t children_count;
   struct UIWidget *parent, **children;
 
-  void (*onpointerdown) (struct UIWidget *self);
-  void (*onpointermove) (struct UIWidget *self);
-  void (*onpointerup) (struct UIWidget *self);
+  void (*onpointerdown) (UIEvent event);
+  void (*onpointermove) (UIEvent event);
+  void (*onpointerup) (UIEvent event);
+  void (*onkeydown[0x39]) (UIEvent event);
+  void (*ondraw) (UIEvent event); /* It's executed AFTER drawing. */
 
   bool horizontal;		/* If it's TRUE, this UIWidget's
 				   CHILDREN are arranged
@@ -44,18 +54,29 @@ UIWidget
   /* ibitmap *LoadPNG(const char *path, int dither); */
   /* void DrawBitmap(int x, int y, const ibitmap *b); */
   ibitmap *image;
+
+  /* And to add some versatility... */
+  void *data;
   
   /* Things that aren't set by the user, but by the internal
      functions. */
-  int x, y, width, height;
+  int x, y, w, h;
 } UIWidget;
 
 UIWidget *UIWidget_new ();
+void UIWidget_terminate (UIWidget *widget);
 
 int UIWidget_add_child (UIWidget *parent, UIWidget *child);
 void UIWidget_remove_children (UIWidget *parent);
 
-void UIWidget_draw (UIWidget *widget);
+#define UIWidget_draw(widget, ...) UIWidget_draw_internal(widget, (true, ##__VA_ARGS__))
+void UIWidget_draw_internal (UIWidget *widget, bool update);
+void UIWidget_handle_event (UIEvent event);
 
-void UIWidget_handle_event (UIWidget *widget, int event_type, int arg1,
-			    int arg2);
+/* Utility functions. */
+
+inline void
+UIWidget_flash (UIWidget *widget)
+{
+  FlashArea (widget->x, widget->y, widget->w, widget->h);
+}
