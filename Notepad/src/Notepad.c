@@ -70,7 +70,7 @@ main_handler (int event_type, int arg1, int arg2)
 
 	UIWidget *em = UISwitch_new
 	  (UINotepad_get_eraser_bool (notepad_root), default_font,
-	   "Eraser mode: ");
+	   "Eraser: ");
 	em->ratio = 0.1;
 
 	UIWidget *ps = UISwitch_new
